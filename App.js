@@ -1,22 +1,8 @@
 import React ,{useEffect, useState} from "react";
-import {
-  Text,
-  Link,
-  HStack,
-  Center,
-  Heading,
-  Switch,
-  useColorMode,
-  NativeBaseProvider,
-  extendTheme,
-  VStack,
-  Code,
-  Button,
-  Toast
-} from "native-base";
-import NativeBaseIcon from "./components/NativeBaseIcon";
-import { VictoryBar, VictoryChart, VictoryLegend, VictoryTheme, Victoryl, VictoryScatter, VictoryLine, VictoryZoomContainer
-} from "victory-native";
+import {Text,HStack,Center,NativeBaseProvider,extendTheme,VStack,Button,ScrollView} from "native-base";
+import { VictoryChart,VictoryTheme,VictoryLine} from "victory-native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faTemperatureThreeQuarters,faDroplet, faEraser } from "@fortawesome/free-solid-svg-icons";
 
 // Define the config
 const config = {
@@ -33,74 +19,83 @@ const data = [
 export const theme = extendTheme({ config });
 
 export default function App() {
-  const [chartData, setData] = useState(data);
-  const addData = () => {
-    var maxYear = 2015;
-    var d = [...chartData]
-    var obj = {year: `${maxYear}`, earnings: Math.random() * (20000 - 10000) + 10000}
-    d.push(obj)
-    setData(d)
-    console.log(chartData);
-    maxYear++
-   }
+  const [tempData, setTempData] = useState([]);
+  const [humData, setHumData] = useState([]);
 
-   useEffect(()=>{
-     setInterval(()=> {
-       setData([]);
-       addData();
-     },5500);
-   },[chartData])
+  const PlotTemperatureData=()=>{
+    setTempData(data);
+  }
+  const PlotHumidityData=()=>{
+    setHumData(data);
+  }
+  const deleteData=()=>{
+    setTempData([]);
+    setHumData([]);
+  }
+  //  useEffect(()=>{
+  //    setInterval(()=> {
+  //      setData([]);
+  //      addData();
+  //    },5500);
+  //  },[chartData])
   return (
     <NativeBaseProvider>
-      <Center
-        _dark={{ bg: "blueGray.900" }}
-        _light={{ bg: "blueGray.50" }}
-        px={4}
-        flex={1}
-      >
-        <VStack space={5} alignItems="center">
-        <VictoryChart width={350} theme={VictoryTheme.material}>
-          {chartData && 
-
-          <VictoryLine data={chartData} animate={{
-            duration: 500,
-            easing: 'sinIn'
-          }} y="earnings" />}
-        </VictoryChart>
-        <Button onPress={addData}>Add Earnings</Button>
-          {/* <NativeBaseIcon />
-          <Heading size="lg">Welcome to NativeBase</Heading>
-          <HStack space={2} alignItems="center">
-            <Text>Edit</Text>
-            <Code>App.js</Code>
-            <Text>and save to reload.</Text>
+      <Center height='89%' >
+        <ScrollView>
+        <VStack safeArea > 
+            <Text mt={1} textAlign='center' color='tertiary.600'> <FontAwesomeIcon  color="#059669" icon={faTemperatureThreeQuarters}/> Tempreature Graph</Text>
+            <Center>
+              <HStack >
+                <ScrollView horizontal={true}>
+                  {/* <VictoryChart width={400}>
+                      <VictoryLine data={data}
+                        animate={{
+                        duration: 500,
+                        easing: 'sinIn'
+                      }}>
+                        </VictoryLine>
+                    </VictoryChart> */}
+                    <VictoryChart width={350} theme={VictoryTheme.material}>
+                      <VictoryLine data={tempData} x="quarter" y="earnings" />
+                    </VictoryChart>
+                </ScrollView>
+              </HStack>
+            </Center>
+            <Text mt={1} textAlign='center' color='primary.500' >  <FontAwesomeIcon color="#06b6d4" icon={faDroplet} /> Humidity Graph</Text>
+            <Center>
+              <HStack >
+                <ScrollView horizontal={true}>
+                  {/* <VictoryChart width={400} >
+                      <VictoryLine data={data}
+                        animate={{
+                        duration: 500,
+                        easing: 'sinIn'
+                      }}></VictoryLine>
+                    </VictoryChart> */}
+                    <VictoryChart width={350} theme={VictoryTheme.material}>
+                      <VictoryLine data={humData} x="quarter" y="earnings" />
+                    </VictoryChart>
+                </ScrollView>
+              </HStack>
+            </Center>
+          </VStack>
+        </ScrollView>
+      </Center>
+      <Center height='11%'>
+        <VStack>
+          <HStack justifyContent='space-around' >
+            <Button borderRadius={50} mx={3}  colorScheme="tertiary"  onPress={PlotTemperatureData}><Text color='white' >Get Temperature <FontAwesomeIcon  color="#ffffff" icon={faTemperatureThreeQuarters}/></Text></Button>
+            <Button  borderRadius={50} mx={3}   colorScheme="primary" onPress={PlotHumidityData}><Text color='white'>Get Humidity <FontAwesomeIcon  color="#ffffff" icon={faDroplet}/></Text></Button>
           </HStack>
-          <Link href="https://docs.nativebase.io" isExternal>
-            <Text color="primary.500" underline fontSize={"xl"}>
-              Learn NativeBase
-            </Text>
-          </Link>
-          <ToggleDarkMode /> */}
+          <Center>
+            <HStack my={1}>
+                <Button  borderRadius={50} colorScheme='danger' onPress={deleteData}><Text color='white'>Delete Readings <FontAwesomeIcon  color="#ffffff" icon={faEraser}/></Text></Button>
+            </HStack>
+          </Center>
         </VStack>
       </Center>
     </NativeBaseProvider>
   );
 }
 
-// Color Switch Component
-function ToggleDarkMode() {
-  const { colorMode, toggleColorMode } = useColorMode();
-  return (
-    <HStack space={2} alignItems="center">
-      <Text>Dark</Text>
-      <Switch
-        isChecked={colorMode === "light"}
-        onToggle={toggleColorMode}
-        aria-label={
-          colorMode === "light" ? "switch to dark mode" : "switch to light mode"
-        }
-      />
-      <Text>Light</Text>
-    </HStack>
-  );
-}
+
