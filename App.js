@@ -1,19 +1,19 @@
 import React ,{useEffect, useState} from "react";
 import {Text,HStack,Center,NativeBaseProvider,extendTheme,VStack,Button,ScrollView} from "native-base";
-import { VictoryChart,VictoryTheme,VictoryLine} from "victory-native";
+import { VictoryChart,VictoryTheme,VictoryLine, VictoryLabel, VictoryAxis} from "victory-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faTemperatureThreeQuarters,faDroplet, faEraser } from "@fortawesome/free-solid-svg-icons";
-
+import { Dimensions } from "react-native";
 // Define the config
 const config = {
   useSystemColorMode: false,
   initialColorMode: "dark",
 };
 const data = [
-  { year: '2011', earnings: 13000 },
-  { year: '2012', earnings: 16500 },
-  { year: '2013', earnings: 14250 },
-  { year: '2014', earnings: 19000 }
+  { year: '2011', earnings: '13k' },
+  { year: '2012', earnings: '16.5k' },
+  { year: '2013', earnings: '14k' },
+  { year: '2014', earnings: '19k' }
  ];
 // extend the theme
 export const theme = extendTheme({ config });
@@ -55,8 +55,14 @@ export default function App() {
                       }}>
                         </VictoryLine>
                     </VictoryChart> */}
-                    <VictoryChart width={350} theme={VictoryTheme.material}>
-                      <VictoryLine data={tempData} x="quarter" y="earnings" />
+                    <VictoryChart width={Dimensions.get('window').width-25} theme={VictoryTheme.material}>
+                      <VictoryLine animate={{
+                        duration:5000,
+                        easing:'polyIn'
+                      }}
+                      data={tempData} x="year" y="earnings" />
+                      <VictoryAxis crossAxis label='Time' axisLabelComponent={<VictoryLabel dy={25}  textAnchor='inherit' />}/>
+                      <VictoryAxis dependentAxis crossAxis  label='Temperature'   axisLabelComponent={<VictoryLabel  dy={-30} textAnchor='inherit' />}/>
                     </VictoryChart>
                 </ScrollView>
               </HStack>
@@ -72,8 +78,14 @@ export default function App() {
                         easing: 'sinIn'
                       }}></VictoryLine>
                     </VictoryChart> */}
-                    <VictoryChart width={350} theme={VictoryTheme.material}>
-                      <VictoryLine data={humData} x="quarter" y="earnings" />
+                    <VictoryChart width={Dimensions.get('window').width-25} theme={VictoryTheme.material}>
+                      <VictoryLine 
+                      animate={{
+                        duration:5000,
+                        easing:'polyIn'
+                      }} data={humData} x="year" y="earnings" />
+                      <VictoryAxis crossAxis label='Time' axisLabelComponent={<VictoryLabel dy={25}  textAnchor='inherit' />}/>
+                      <VictoryAxis dependentAxis crossAxis  label='Humidity'   axisLabelComponent={<VictoryLabel  dy={-30} textAnchor='inherit' />}/>
                     </VictoryChart>
                 </ScrollView>
               </HStack>
