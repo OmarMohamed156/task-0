@@ -88,7 +88,7 @@ export default function App() {
             <Center>
               <HStack >
                 <ScrollView mx={5} horizontal={true}>
-                    <VictoryChart domain={{x:[0,100]}} width={Dimensions.get('window').width} >
+                    <VictoryChart domain={{x:[0,100]}} width={Dimensions.get('window').width} theme={VictoryTheme.material} >
                       <VictoryLine style={{
                         data: { stroke: '#059669'}
                       }} animate={{
