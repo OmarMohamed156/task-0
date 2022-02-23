@@ -4,6 +4,7 @@ import { VictoryChart,VictoryTheme,VictoryLine, VictoryLabel, VictoryAxis} from 
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faTemperatureThreeQuarters,faDroplet, faEraser } from "@fortawesome/free-solid-svg-icons";
 import { Dimensions } from "react-native";
+import axios from "axios";
 // Define the config
 const config = {
   useSystemColorMode: false,
@@ -21,16 +22,56 @@ export const theme = extendTheme({ config });
 export default function App() {
   const [tempData, setTempData] = useState([]);
   const [humData, setHumData] = useState([]);
+  // const [alarmStatus,setAlarmStatus]= useState();
+  const [alarmStatusMessage,setAlarmStatusMessage] = useState('Set');
 
   const PlotTemperatureData=()=>{
-    setTempData(data);
+    setInterval(()=>{
+      axios.get('http://remote-monitoring-api.herokuapp.com/readings/temp',{
+        headers: {
+          'Content-Type': 'application/json'
+      }
+      }).then((res)=>{
+        console.log(res.data.temperatures);
+        setTempData(res.data.temperatures);
+      })
+    },12000)
   }
   const PlotHumidityData=()=>{
-    setHumData(data);
+
+    // setHumData(data);
   }
   const deleteData=()=>{
     setTempData([]);
     setHumData([]);
+  }
+  const setAlarm = (status)=>{
+    axios.post('https://remote-monitoring-api.herokuapp.com/control/alarm',{
+      "is_set": status
+    })
+    .then((res)=>{
+      console.log(res.status);
+    })
+    .catch((err)=>{
+      console.log(err.message);
+    })
+  }
+  const toggleAlarm=()=>{
+    axios.get('https://remote-monitoring-api.herokuapp.com/control/alarm')
+    .then((res)=>{
+      console.log(res.data.alarm);
+      if(res.data.alarm == 1){
+        setAlarmStatusMessage('Set')
+        setAlarm(0);
+      }
+      else{
+        setAlarmStatusMessage('Disable')
+        setAlarm(1);
+      }
+    })
+    .catch((err)=>{
+      console.log(err.message);
+    })
   }
   //  useEffect(()=>{
   //    setInterval(()=> {
@@ -46,21 +87,15 @@ export default function App() {
             <Text mt={1} textAlign='center' color='tertiary.600'> <FontAwesomeIcon  color="#059669" icon={faTemperatureThreeQuarters}/> Tempreature Graph</Text>
             <Center>
               <HStack >
-                <ScrollView horizontal={true}>
-                  {/* <VictoryChart width={400}>
-                      <VictoryLine data={data}
-                        animate={{
-                        duration: 500,
-                        easing: 'sinIn'
-                      }}>
-                        </VictoryLine>
-                    </VictoryChart> */}
-                    <VictoryChart width={Dimensions.get('window').width-25} theme={VictoryTheme.material}>
-                      <VictoryLine animate={{
+                <ScrollView mx={5} horizontal={true}>
+                    <VictoryChart domain={{x:[0,100]}} width={Dimensions.get('window').width} >
+                      <VictoryLine style={{
+                        data: { stroke: '#059669'}
+                      }} animate={{
                         duration:5000,
-                        easing:'polyIn'
+                        easing:'sinIn'
                       }}
-                      data={tempData} x="year" y="earnings" />
+                      data={tempData}  y="temperature" />
                       <VictoryAxis crossAxis label='Time' axisLabelComponent={<VictoryLabel dy={25}  textAnchor='inherit' />}/>
                       <VictoryAxis dependentAxis crossAxis  label='Temperature'   axisLabelComponent={<VictoryLabel  dy={-30} textAnchor='inherit' />}/>
                     </VictoryChart>
@@ -70,19 +105,14 @@ export default function App() {
             <Text mt={1} textAlign='center' color='primary.500' >  <FontAwesomeIcon color="#06b6d4" icon={faDroplet} /> Humidity Graph</Text>
             <Center>
               <HStack >
-                <ScrollView horizontal={true}>
-                  {/* <VictoryChart width={400} >
-                      <VictoryLine data={data}
-                        animate={{
-                        duration: 500,
-                        easing: 'sinIn'
-                      }}></VictoryLine>
-                    </VictoryChart> */}
-                    <VictoryChart width={Dimensions.get('window').width-25} theme={VictoryTheme.material}>
-                      <VictoryLine 
+                <ScrollView mx={5} horizontal={true}>
+                    <VictoryChart domain={{x:[0,100]}} width={Dimensions.get('window').width-25} theme={VictoryTheme.material}>
+                      <VictoryLine style={{
+                        data: { stroke: '#059669'}
+                      }}
                       animate={{
                         duration:5000,
-                        easing:'polyIn'
+                        easing: 'sinOut'
                       }} data={humData} x="year" y="earnings" />
                       <VictoryAxis crossAxis label='Time' axisLabelComponent={<VictoryLabel dy={25}  textAnchor='inherit' />}/>
                       <VictoryAxis dependentAxis crossAxis  label='Humidity'   axisLabelComponent={<VictoryLabel  dy={-30} textAnchor='inherit' />}/>
@@ -101,7 +131,7 @@ export default function App() {
           </HStack>
           <Center>
             <HStack my={1}>
-                <Button  borderRadius={50} colorScheme='danger' onPress={deleteData}><Text color='white'>Delete Readings <FontAwesomeIcon  color="#ffffff" icon={faEraser}/></Text></Button>
+              <Button  borderRadius={50} colorScheme='danger' onPress={toggleAlarm} on ><Text color='white'>{alarmStatusMessage} Alarm <FontAwesomeIcon  color="#ffffff" icon={faEraser}/></Text></Button>
             </HStack>
           </Center>
         </VStack>
