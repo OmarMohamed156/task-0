@@ -10,50 +10,66 @@ const config = {
   useSystemColorMode: false,
   initialColorMode: "dark",
 };
-const data = [
-  { year: '2011', earnings: '13k' },
-  { year: '2012', earnings: '16.5k' },
-  { year: '2013', earnings: '14k' },
-  { year: '2014', earnings: '19k' }
- ];
 // extend the theme
 export const theme = extendTheme({ config });
+
+axios.defaults.baseURL = 'http://remote-monitoring-api.herokuapp.com/readings'
 
 export default function App() {
   const [tempData, setTempData] = useState([]);
   const [humData, setHumData] = useState([]);
-  // const [alarmStatus,setAlarmStatus]= useState();
   const [alarmStatusMessage,setAlarmStatusMessage] = useState('Set');
-  //plot temp data
-  const PlotTemperatureData=()=>{
-    setInterval(()=>{
-      axios.get('http://remote-monitoring-api.herokuapp.com/readings/temp',{
+  const [minX,setMinX]= useState(0);
+  const [maxX,setMaxX]= useState(50);
+
+  //get temp data
+  const getTempData = async ()=>{
+    try{
+      const resp = await axios.get('/temp',{
         headers: {
           'Content-Type': 'application/json'
       }
-      }).then((res)=>{
-        setTempData(res.data.temperatures);
-      }).catch((err)=>{
-        throw(err.message)
       })
-    },12000)
+      if(resp.data.temperatures.length % 50 == 0){
+        setMinX(resp.data.temperatures.length);
+        setMaxX(50+resp.data.temperatures.length);
+      }
+      setTempData(resp.data.temperatures);
+
+    }
+    catch (err){
+      throw (err.message);
+    }
+  }
+  //plot temp data
+  const PlotTemperatureData=()=>{
+    setInterval(()=>{
+      getTempData();
+    },2200)
+  }
+
+  //get humidity data
+  const getHumData = async ()=>{
+    try{
+      const resp = await axios.get('/humidity',{
+        headers: {
+          'Content-Type': 'application/json'
+      }
+      })
+      setHumData(resp.data.humidities);
+    }
+    catch (err){
+      throw (err.message);
+    }
   }
   //plot humitiy data
   const PlotHumidityData=()=>{
     setInterval(()=>{
-      axios.get('https://remote-monitoring-api.herokuapp.com/readings/humidity',{
-        headers: {
-          'Content-Type': 'application/json'
-      }
-      }).then((res)=>{
-        setHumData(res.data.humidities);
-      }).catch((err)=>{
-        throw(err.message)
-      })
-    },12000)
+      getHumData()
+    },2200)
   }
   const setAlarm = (status)=>{
-    axios.post('https://remote-monitoring-api.herokuapp.com/control/alarm',{
+    axios.post('/control/alarm',{
       "is_set": status
     })
     .then((res)=>{
@@ -64,7 +80,7 @@ export default function App() {
     })
   }
   const toggleAlarm=()=>{
-    axios.get('https://remote-monitoring-api.herokuapp.com/control/alarm')
+    axios.get('/control/alarm')
     .then((res)=>{
       if(res.data.alarm == 1){
         setAlarmStatusMessage('Set')
@@ -102,7 +118,7 @@ export default function App() {
                         easing:'sinIn'
                       }}
                       data={tempData}  y="temperature" />
-                      <VictoryAxis style={{axisLabel:{
+                      <VictoryAxis domain={{x:[minX,maxX]}} style={{axisLabel:{
                         fontSize: 15, fill:'#059669'
                       }}} crossAxis label='Time' axisLabelComponent={<VictoryLabel dy={25}  textAnchor='inherit' />}/>
                       <VictoryAxis style={{axisLabel:{
@@ -149,15 +165,8 @@ export default function App() {
               <Button  borderRadius={50} mx={3}   colorScheme="danger" onPress={deleteData}><Text color='white'> Clear Graph <FontAwesomeIcon  color="#ffffff" icon={faEraser}/></Text></Button>
             </HStack>
           </ScrollView>
-          {/* <Center>
-          <HStack my={1} justifyContent='space-around' >
-
-          </HStack>
-          </Center> */}
         </VStack>
       </Center>
     </NativeBaseProvider>
   );
 }
-
-
